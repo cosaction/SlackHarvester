@@ -22,7 +22,7 @@ namespace SlackScrape
 			return Channels[name];
 		}
 
-		internal void ReadChannels(string exportedSlackFolder)
+		internal ChannelRepository(string exportedSlackFolder)
 		{
 			var channels = new Dictionary<string, Channel>();
 			var channelsPathname = Path.Combine(exportedSlackFolder, "channels.json");

@@ -18,7 +18,7 @@ namespace SlackScrape
 			return Users[id];
 		}
 
-		internal void ReadUsers(string dirName)
+		internal UserRepository(string dirName)
 		{
 			var usersPathname = Path.Combine(dirName, "users.json");
 			if (!File.Exists(usersPathname))

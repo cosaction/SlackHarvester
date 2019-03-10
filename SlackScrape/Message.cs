@@ -32,5 +32,23 @@ namespace SlackScrape
 		internal List<Reply> Replies { get; set; }
 
 		internal List<Message> ThreadedMessages = new List<Message>();
+
+		internal string PrettifyText(UserRepository userRepository)
+		{
+			var retVal = Text;
+			var startIdx = 0;
+			var foundOpenBracketIdx = Text.IndexOf("<@", startIdx);
+			while (foundOpenBracketIdx > -1)
+			{
+				startIdx = foundOpenBracketIdx;
+				var endBracketIndex = Text.IndexOf(">", foundOpenBracketIdx + 1);
+				var userId = Text.Substring(startIdx + 2, endBracketIndex - startIdx -2);
+				var user = userRepository.Get(userId);
+				retVal = Text.Replace(userId, user.Name);
+				// Swap user Name.
+				foundOpenBracketIdx = Text.IndexOf("<@", foundOpenBracketIdx + 1);
+			}
+			return retVal;
+		}
 	}
 }

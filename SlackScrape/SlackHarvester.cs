@@ -20,10 +20,8 @@ namespace SlackScrape
 			}
 			foreach (var dirName in Directory.GetDirectories(exportedSlackFolder, "*.*"))
 			{
-				var userRepository = new UserRepository();
-				userRepository.ReadUsers(dirName);
-				var channelRepository = new ChannelRepository();
-				channelRepository.ReadChannels(dirName);
+				var userRepository = new UserRepository(dirName);
+				var channelRepository = new ChannelRepository(dirName);
 				var comments = new StringBuilder();
 				foreach (var channel in channelRepository.Channels.Values)
 				{
@@ -44,14 +42,14 @@ namespace SlackScrape
 							}
 							if (message.Replies == null)
 							{
-								comments.AppendLine($"[{userRepository.Get(message.User).RealName}]: {message.Text}]");
+								comments.AppendLine($"[{userRepository.Get(message.User).RealName}]: {message.PrettifyText(userRepository)}]");
 								continue;
 							}
 							comments.AppendLine($"\t********** [Start: thread] **********");
-							comments.AppendLine($"\t[{userRepository.Get(message.User).RealName}]: {message.Text}]");
+							comments.AppendLine($"\t[{userRepository.Get(message.User).RealName}]: {message.PrettifyText(userRepository)}]");
 							foreach (var messageReply in message.ThreadedMessages)
 							{
-								comments.AppendLine($"\t\t[{userRepository.Get(messageReply.User).RealName}]: {messageReply.Text}]");
+								comments.AppendLine($"\t\t[{userRepository.Get(messageReply.User).RealName}]: {messageReply.PrettifyText(userRepository)}]");
 							}
 							comments.AppendLine($"\t********** [End: thread] **********");
 						}
