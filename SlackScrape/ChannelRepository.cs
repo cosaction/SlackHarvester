@@ -13,7 +13,7 @@ namespace SlackScrape
 {
 	internal sealed class ChannelRepository
 	{
-		internal IReadOnlyDictionary<string, Channel> Channels { get; private set; }
+		internal IReadOnlyDictionary<string, Channel> Channels { get; }
 
 		internal bool HasChannel(string name) => Channels.ContainsKey(name);
 

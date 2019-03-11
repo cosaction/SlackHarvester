@@ -2,6 +2,7 @@
 // This software is licensed under the LGPL, version 2.1 or later
 // (http://www.gnu.org/licenses/lgpl-2.1.html)
 
+using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
@@ -36,17 +37,20 @@ namespace SlackScrape
 		internal string PrettifyText(UserRepository userRepository)
 		{
 			var retVal = Text;
-			var startIdx = 0;
-			var foundOpenBracketIdx = Text.IndexOf("<@", startIdx);
+			var idNameMap = new List<Tuple<string, string>>();
+			var foundOpenBracketIdx = retVal.IndexOf("<@", 0, StringComparison.InvariantCulture);
 			while (foundOpenBracketIdx > -1)
 			{
-				startIdx = foundOpenBracketIdx;
-				var endBracketIndex = Text.IndexOf(">", foundOpenBracketIdx + 1);
-				var userId = Text.Substring(startIdx + 2, endBracketIndex - startIdx -2);
+				var endBracketIndex = retVal.IndexOf(">", foundOpenBracketIdx, StringComparison.InvariantCulture);
+				var userId = retVal.Substring(foundOpenBracketIdx + 2, endBracketIndex - foundOpenBracketIdx -2);
 				var user = userRepository.Get(userId);
-				retVal = Text.Replace(userId, user.Name);
+				idNameMap.Add(new Tuple<string, string>(userId, user.Name));
+				foundOpenBracketIdx = retVal.IndexOf("<@", endBracketIndex, StringComparison.InvariantCulture);
+			}
+			foreach (var (userId, userName) in idNameMap)
+			{
 				// Swap user Name.
-				foundOpenBracketIdx = Text.IndexOf("<@", foundOpenBracketIdx + 1);
+				retVal = retVal.Replace(userId, userName);
 			}
 			return retVal;
 		}

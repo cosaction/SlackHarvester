@@ -50,10 +50,10 @@ namespace SlackScrape
 					foreach (var token in tokens.Children().ToList())
 					{
 						var message = token.ToObject<Message>();
-						if (skipSubtypes.Contains(message.Subtype))
-						{
-							continue;
-						}
+						//if (skipSubtypes.Contains(message.Subtype))
+						//{
+						//	continue;
+						//}
 						Messages.Add(message.Ts, message);
 						if (string.IsNullOrWhiteSpace(message.Thread_Ts) || message.Ts == message.Thread_Ts)
 						{
