@@ -39,6 +39,17 @@ namespace SlackScrape
 					Users.Add(user.Id, user);
 				}
 			}
+			if (HasUser("USLACKBOT"))
+			{
+				return;
+			}
+			var slackBotUser = new User
+			{
+				Id = "USLACKBOT",
+				Real_Name = "SLACKBOT",
+				Deleted = false
+			};
+			Users.Add("USLACKBOT", slackBotUser);
 		}
 	}
 }

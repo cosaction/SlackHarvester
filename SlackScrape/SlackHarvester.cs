@@ -57,7 +57,7 @@ namespace SlackScrape
 					}
 					comments.AppendLine($"********** [End: {channel.Name}] **********");
 				}
-				File.WriteAllText(Path.Combine(dirName, "Messages.txt"), comments.ToString());
+				File.WriteAllText(Path.Combine(dirName, $"{Path.GetFileNameWithoutExtension(dirName)}-Messages.txt"), comments.ToString());
 			}
 		}
 	}
