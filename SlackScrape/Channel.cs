@@ -14,5 +14,8 @@ namespace SlackScrape
 
 		[JsonProperty]
 		internal string Name { get; set; }
+
+		[JsonProperty]
+		internal bool Is_Archived { get; set; }
 	}
 }

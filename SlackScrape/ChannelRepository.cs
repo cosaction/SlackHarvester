@@ -13,33 +13,51 @@ namespace SlackScrape
 {
 	internal sealed class ChannelRepository
 	{
-		internal IReadOnlyDictionary<string, Channel> Channels { get; }
+		internal IReadOnlyDictionary<string, Channel> CurrentChannels { get; }
 
-		internal bool HasChannel(string name) => Channels.ContainsKey(name);
+		internal bool HasCurrentChannel(string name) => CurrentChannels.ContainsKey(name);
 
-		internal Channel Get(string name)
+		internal Channel GetCurrentChannel(string name)
 		{
-			return Channels[name];
+			return CurrentChannels[name];
+		}
+
+		internal IReadOnlyDictionary<string, Channel> ArchivedChannels { get; }
+
+		internal bool HasArchivedChannel(string name) => ArchivedChannels.ContainsKey(name);
+
+		internal Channel GetArchivedChannel(string name)
+		{
+			return ArchivedChannels[name];
 		}
 
 		internal ChannelRepository(string exportedSlackFolder)
 		{
-			var channels = new Dictionary<string, Channel>();
 			var channelsPathname = Path.Combine(exportedSlackFolder, "channels.json");
 			if (!File.Exists(channelsPathname))
 			{
 				throw new InvalidOperationException($"'{channelsPathname}' does not exist.");
 			}
+			var currentChannels = new Dictionary<string, Channel>();
+			var archivedChannels = new Dictionary<string, Channel>();
 			using (var reader = File.OpenText(channelsPathname))
 			{
 				var token = JToken.ReadFrom(new JsonTextReader(reader));
 				foreach (var result in token.Children().ToList())
 				{
 					var channel = result.ToObject<Channel>();
-					channels.Add(channel.Name, channel);
+					if (channel.Is_Archived)
+					{
+						archivedChannels.Add(channel.Name, channel);
+					}
+					else
+					{
+						currentChannels.Add(channel.Name, channel);
+					}
 				}
 			}
-			Channels = channels;
+			CurrentChannels = currentChannels;
+			ArchivedChannels = archivedChannels;
 		}
 	}
 }

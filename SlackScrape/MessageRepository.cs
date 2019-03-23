@@ -13,9 +13,9 @@ namespace SlackScrape
 {
 	internal sealed class MessageRepository
 	{
-		private Dictionary<string, Message> Messages { get; set; }
+		private Dictionary<string, Message> Messages { get; }
 
-		internal SortedDictionary<string, List<Message>> TopLevelMessages { get; private set; }
+		internal SortedDictionary<string, List<Message>> TopLevelMessages { get; }
 
 		internal MessageRepository(string exportedSlackFolder, Channel channel)
 		{
@@ -50,10 +50,10 @@ namespace SlackScrape
 					foreach (var token in tokens.Children().ToList())
 					{
 						var message = token.ToObject<Message>();
-						//if (skipSubtypes.Contains(message.Subtype))
-						//{
-						//	continue;
-						//}
+						if (skipSubtypes.Contains(message.Subtype))
+						{
+							continue;
+						}
 						Messages.Add(message.Ts, message);
 						if (string.IsNullOrWhiteSpace(message.Thread_Ts) || message.Ts == message.Thread_Ts)
 						{
