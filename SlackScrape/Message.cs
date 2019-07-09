@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using Newtonsoft.Json;
 
 namespace SlackScrape
@@ -36,7 +38,7 @@ namespace SlackScrape
 
 		internal string PrettifyText(UserRepository userRepository)
 		{
-			var retVal = Text;
+			var retVal = Text.Trim();
 			var idNameMap = new List<Tuple<string, string>>();
 			var foundOpenBracketIdx = retVal.IndexOf("<@", 0, StringComparison.InvariantCulture);
 			while (foundOpenBracketIdx > -1)
@@ -52,7 +54,47 @@ namespace SlackScrape
 				// Swap user Name.
 				retVal = retVal.Replace(userId, userName);
 			}
+			var xmlFriendly = XmlCharacterWhitelist(retVal);
+			if (!string.Equals(retVal, xmlFriendly, StringComparison.InvariantCultureIgnoreCase))
+			{
+				retVal = xmlFriendly;
+			}
 			return retVal;
+		}
+
+		private static string XmlCharacterWhitelist(string input)
+		{
+			if (string.IsNullOrWhiteSpace(input))
+			{
+				return string.Empty;
+			}
+			var sb = new StringBuilder();
+			foreach (var ch in input.Where(ch => ch >= 0x0020 && ch <= 0xD7FF || ch >= 0xE000 && ch <= 0xFFFD || ch == 0x0009 || ch == 0x000A || ch == 0x000D))
+			{
+				sb.Append(ch);
+			}
+			return NullRemover(sb.ToString());
+		}
+
+		private static string NullRemover(string input)
+		{
+			int idx;
+			var asBytes = Encoding.UTF8.GetBytes(input);
+			var temp = new byte[asBytes.Length];
+			for (idx = 0; idx < asBytes.Length - 1; idx++)
+			{
+				if (asBytes[idx] == 0x00)
+				{
+					break;
+				}
+				temp[idx] = asBytes[idx];
+			}
+			var nullLessData = new byte[idx];
+			for (idx = 0; idx < nullLessData.Length; idx++)
+			{
+				nullLessData[idx] = temp[idx];
+			}
+			return Encoding.UTF8.GetString(nullLessData);
 		}
 	}
 }

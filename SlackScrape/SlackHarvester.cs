@@ -6,15 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
+using System.Xml.Linq;
 
 namespace SlackScrape
 {
 	internal static class SlackHarvester
 	{
-		internal static void Harvest()
+		internal static void Harvest(string exportedSlackFolder)
 		{
-			var exportedSlackFolder = Path.Combine("/home", "randy", "COS_Slack_Exports");
 			if (!Directory.Exists(exportedSlackFolder))
 			{
 				throw new ArgumentException("Exported Slack folder not found.", nameof(exportedSlackFolder));
@@ -30,42 +29,50 @@ namespace SlackScrape
 
 		private static void ProcessChannels(IEnumerable<Channel> channels, string dirName, UserRepository userRepository, string channelType)
 		{
-			var comments = new StringBuilder();
+			var doc = new XDocument(new XElement("root"));
+			var root = doc.Root;
 			foreach (var channel in channels)
 			{
-				comments.AppendLine($"********** [Start: {channel.Name}] **********");
+				var channelElement = new XElement("channel", new XAttribute("name", channel.Name));
+				root.Add(channelElement);
 				var messageRepository = new MessageRepository(dirName, channel);
-				foreach (var (key, value) in messageRepository.TopLevelMessages)
+				foreach (var (messageDate, messages) in messageRepository.TopLevelMessages)
 				{
-					if (!value.Any())
+					if (!messages.Any())
 					{
 						continue;
 					}
-					comments.AppendLine($"********** [Start: {key}] **********");
-					foreach (var message in value)
+					var messagesForDate = new XElement("messages", new XAttribute("date", messageDate));
+					channelElement.Add(messagesForDate);
+					foreach (var message in messages.Where(message => !string.IsNullOrWhiteSpace(message.User) && userRepository.HasUser(message.User)))
 					{
-						if (string.IsNullOrWhiteSpace(message.User) || !userRepository.HasUser(message.User))
-						{
-							continue;
-						}
 						if (message.Replies == null)
 						{
-							comments.AppendLine($"[{userRepository.Get(message.User).RealName}]: {message.PrettifyText(userRepository)}]");
+							var standAloneMessage = new XElement("message", new XAttribute("name", userRepository.Get(message.User).RealName))
+							{
+								Value = message.PrettifyText(userRepository)
+							};
+							messagesForDate.Add(standAloneMessage);
 							continue;
 						}
-						comments.AppendLine($"\t********** [Start: thread] **********");
-						comments.AppendLine($"\t[{userRepository.Get(message.User).RealName}]: {message.PrettifyText(userRepository)}]");
-						foreach (var messageReply in message.ThreadedMessages)
+						var threadedMessageElement = new XElement("threadedMessage");
+						messagesForDate.Add(threadedMessageElement);
+						var mainMessageElement = new XElement("mainMessage", new XAttribute("name", userRepository.Get(message.User).RealName))
 						{
-							comments.AppendLine($"\t\t[{userRepository.Get(messageReply.User).RealName}]: {messageReply.PrettifyText(userRepository)}]");
+							Value = message.PrettifyText(userRepository)
+						};
+						threadedMessageElement.Add(mainMessageElement);
+						foreach (var replyMessageElement in message.ThreadedMessages.Select(messageReply => new XElement("replyMessage", new XAttribute("name", userRepository.Get(messageReply.User).RealName))
+						{
+							Value = messageReply.PrettifyText(userRepository)
+						}))
+						{
+							mainMessageElement.Add(replyMessageElement);
 						}
-						comments.AppendLine($"\t********** [End: thread] **********");
 					}
-					comments.AppendLine($"********** [End: {key}] **********");
 				}
-				comments.AppendLine($"********** [End: {channel.Name}] **********");
 			}
-			File.WriteAllText(Path.Combine(dirName, $"{Path.GetFileNameWithoutExtension(dirName)}-{channelType}-Messages.txt"), comments.ToString());
+			doc.Save(Path.Combine(dirName, $"{Path.GetFileNameWithoutExtension(dirName)}-{channelType}-Messages.xml"));
 		}
 	}
 }

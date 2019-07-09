@@ -10,7 +10,7 @@ namespace SlackScrape
 	{
 		private static void Main(string[] args)
 		{
-			SlackHarvester.Harvest();
+			SlackHarvester.Harvest(args[0]);
 			Console.WriteLine("Done.");
 		}
 	}
