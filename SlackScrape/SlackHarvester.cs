@@ -27,8 +27,10 @@ namespace SlackScrape
 				}
 				var userRepository = new UserRepository(dirName);
 				var channelRepository = new ChannelRepository(dirName);
+				//Console.WriteLine($"Start processing '{dirName}'.");
 				ProcessChannels(channelRepository.CurrentChannels.Values, dirName, userRepository, "Current");
 				ProcessChannels(channelRepository.ArchivedChannels.Values, dirName, userRepository, "Archived");
+				//Console.WriteLine($"End processing '{dirName}'.");
 			}
 		}
 
@@ -39,13 +41,11 @@ namespace SlackScrape
 				"NB: No original text.",
 				"NB: Original text was all illegal XML characters."
 			};
-			var doc = new XDocument(new XElement("root"));
-			var root = doc.Root;
+			var root = new XElement("root");
 			foreach (var channel in channels)
 			{
-				var channelElement = new XElement("channel", new XAttribute("name", channel.Name));
-				root.Add(channelElement);
 				var messageRepository = new MessageRepository(userRepository, dirName, channel);
+				var channelElement = new XElement("channel", new XAttribute("name", channel.Name));
 				foreach (var (messageDate, messages) in messageRepository.TopLevelMessages)
 				{
 					if (!messages.Any())
@@ -53,7 +53,6 @@ namespace SlackScrape
 						continue;
 					}
 					var messagesForDate = new XElement("messages", new XAttribute("date", messageDate));
-					channelElement.Add(messagesForDate);
 					foreach (var message in messages.Where(message => !string.IsNullOrWhiteSpace(message.User) && userRepository.HasUser(message.User)))
 					{
 						var noUsefulTextMessage = essentiallyEmptyTextContent.Contains(message.Text);
@@ -77,9 +76,34 @@ namespace SlackScrape
 							}
 						}
 					}
+					if (messagesForDate.HasElements)
+					{
+						channelElement.Add(messagesForDate);
+					}
+					/*else
+					{
+						Console.WriteLine($"No messages in current 'messagesForDate' with date '{messagesForDate.Attribute("date").Value}' in channel '{channelElement.Attribute("name").Value}', so skip adding it to 'channel' parent element.");
+					}*/
 				}
+				if (channelElement.HasElements)
+				{
+					root.Add(channelElement);
+				}
+				/*else
+				{
+					Console.WriteLine($"No dates in current 'channelElement' named: '{channelElement.Attribute("name").Value}', so skip adding it to the root element.");
+				}*/
 			}
-			doc.Save(Path.Combine(dirName, $"{Path.GetFileNameWithoutExtension(dirName)}-{channelType}-Messages.xml"));
+			var docPathname = Path.Combine(dirName, $"{Path.GetFileNameWithoutExtension(dirName)}-{channelType}-Messages.xml");
+			if (root.HasElements)
+			{
+				var doc = new XDocument(root);
+				doc.Save(docPathname);
+			}
+			/*else
+			{
+				Console.WriteLine($"Nothing in document '{docPathname}', so skip writing it out.");
+			}*/
 		}
 	}
 }
