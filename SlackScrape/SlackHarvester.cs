@@ -34,13 +34,18 @@ namespace SlackScrape
 
 		private static void ProcessChannels(IEnumerable<Channel> channels, string dirName, UserRepository userRepository, string channelType)
 		{
+			var essentiallyEmptyTextContent = new HashSet<string>
+			{
+				"NB: No original text.",
+				"NB: Original text was all illegal XML characters."
+			};
 			var doc = new XDocument(new XElement("root"));
 			var root = doc.Root;
 			foreach (var channel in channels)
 			{
 				var channelElement = new XElement("channel", new XAttribute("name", channel.Name));
 				root.Add(channelElement);
-				var messageRepository = new MessageRepository(dirName, channel);
+				var messageRepository = new MessageRepository(userRepository, dirName, channel);
 				foreach (var (messageDate, messages) in messageRepository.TopLevelMessages)
 				{
 					if (!messages.Any())
@@ -51,22 +56,25 @@ namespace SlackScrape
 					channelElement.Add(messagesForDate);
 					foreach (var message in messages.Where(message => !string.IsNullOrWhiteSpace(message.User) && userRepository.HasUser(message.User)))
 					{
-						if (string.IsNullOrWhiteSpace(message.Text))
-						{
-							continue;
-						}
+						var noUsefulTextMessage = essentiallyEmptyTextContent.Contains(message.Text);
 						if (message.Replies == null)
 						{
-							messagesForDate.Add(new XElement("message", new XAttribute("type", "solo"), new XAttribute("name", userRepository.Get(message.User).RealName), new XElement("text", message.PrettifyText(userRepository))));
+							if (!noUsefulTextMessage)
+							{
+								messagesForDate.Add(new XElement("message", new XAttribute("type", "solo"), new XAttribute("name", userRepository.Get(message.User).RealName), new XElement("text", message.Text)));
+							}
 							continue;
 						}
 						var threadedMessageElement = new XElement("message", new XAttribute("type", "threaded"));
 						messagesForDate.Add(threadedMessageElement);
-						var mainMessageElement = new XElement("mainMessage", new XAttribute("name", userRepository.Get(message.User).RealName), new XElement("text", message.PrettifyText(userRepository)));
+						var mainMessageElement = new XElement("mainMessage", new XAttribute("name", userRepository.Get(message.User).RealName), new XElement("text", message.Text));
 						threadedMessageElement.Add(mainMessageElement);
-						foreach (var replyMessageElement in message.ThreadedMessages.Select(messageReply => new XElement("replyMessage", new XAttribute("name", userRepository.Get(messageReply.User).RealName), new XElement("text", messageReply.PrettifyText(userRepository)))))
+						foreach (var replyMessageElement in message.ThreadedMessages.Select(messageReply => new XElement("replyMessage", new XAttribute("name", userRepository.Get(messageReply.User).RealName), new XElement("text", messageReply.Text))))
 						{
-							mainMessageElement.Add(replyMessageElement);
+							if (!essentiallyEmptyTextContent.Contains(replyMessageElement.Element("text").Value))
+							{
+								mainMessageElement.Add(replyMessageElement);
+							}
 						}
 					}
 				}

@@ -13,6 +13,8 @@ namespace SlackScrape
 	[JsonObject(MemberSerialization.OptIn)]
 	internal sealed class Message
 	{
+		private static byte[] _moreJunk = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x18, 0x19, 0x1C, 0x1D};
+
 		[JsonProperty]
 		internal string User { get; set; }
 
@@ -36,30 +38,40 @@ namespace SlackScrape
 
 		internal List<Message> ThreadedMessages = new List<Message>();
 
-		internal string PrettifyText(UserRepository userRepository)
+		internal void PrettifyText(UserRepository userRepository)
 		{
-			var retVal = Text.Trim();
+			if (string.IsNullOrWhiteSpace(Text))
+			{
+				Text = "NB: No original text.";
+				return;
+			}
+			var prettifiedText = Text.Trim();
 			var idNameMap = new List<Tuple<string, string>>();
-			var foundOpenBracketIdx = retVal.IndexOf("<@", 0, StringComparison.InvariantCulture);
+			var foundOpenBracketIdx = prettifiedText.IndexOf("<@", 0, StringComparison.InvariantCulture);
 			while (foundOpenBracketIdx > -1)
 			{
-				var endBracketIndex = retVal.IndexOf(">", foundOpenBracketIdx, StringComparison.InvariantCulture);
-				var userId = retVal.Substring(foundOpenBracketIdx + 2, endBracketIndex - foundOpenBracketIdx -2);
+				var endBracketIndex = prettifiedText.IndexOf(">", foundOpenBracketIdx, StringComparison.InvariantCulture);
+				var userId = prettifiedText.Substring(foundOpenBracketIdx + 2, endBracketIndex - foundOpenBracketIdx -2);
 				var user = userRepository.Get(userId);
 				idNameMap.Add(new Tuple<string, string>(userId, user.Name));
-				foundOpenBracketIdx = retVal.IndexOf("<@", endBracketIndex, StringComparison.InvariantCulture);
+				// NB: Don't do the swap here, since that will mess up "endBracketIndex".
+				foundOpenBracketIdx = prettifiedText.IndexOf("<@", endBracketIndex, StringComparison.InvariantCulture);
 			}
 			foreach (var (userId, userName) in idNameMap)
 			{
 				// Swap user Name.
-				retVal = retVal.Replace(userId, userName);
+				prettifiedText = prettifiedText.Replace(userId, userName);
 			}
-			var xmlFriendly = XmlCharacterWhitelist(retVal);
-			if (!string.Equals(retVal, xmlFriendly, StringComparison.InvariantCultureIgnoreCase))
+			var xmlFriendly = XmlCharacterWhitelist(prettifiedText);
+			if (!string.Equals(prettifiedText, xmlFriendly, StringComparison.InvariantCultureIgnoreCase))
 			{
-				retVal = xmlFriendly;
+				prettifiedText = xmlFriendly;
 			}
-			return retVal;
+			Text = string.IsNullOrWhiteSpace(prettifiedText) ? string.Empty : prettifiedText;
+			if (string.IsNullOrEmpty(Text))
+			{
+				Text = "NB: Original text was all illegal XML characters.";
+			}
 		}
 
 		private static string XmlCharacterWhitelist(string input)
@@ -69,32 +81,11 @@ namespace SlackScrape
 				return string.Empty;
 			}
 			var sb = new StringBuilder();
-			foreach (var ch in input.Where(ch => ch >= 0x0020 && ch <= 0xD7FF || ch >= 0xE000 && ch <= 0xFFFD || ch == 0x0009 || ch == 0x000A || ch == 0x000D))
+			foreach (var character in input.Where(character => character >= 0x0020 && character <= 0xD7FF || character >= 0xE000 && character <= 0xFFFD || character == 0x0009 || character == 0x000A || character == 0x000D))
 			{
-				sb.Append(ch);
+				sb.Append(character);
 			}
-			return NullRemover(sb.ToString());
-		}
-
-		private static string NullRemover(string input)
-		{
-			int idx;
-			var asBytes = Encoding.UTF8.GetBytes(input);
-			var temp = new byte[asBytes.Length];
-			for (idx = 0; idx < asBytes.Length - 1; idx++)
-			{
-				if (asBytes[idx] == 0x00)
-				{
-					break;
-				}
-				temp[idx] = asBytes[idx];
-			}
-			var nullLessData = new byte[idx];
-			for (idx = 0; idx < nullLessData.Length; idx++)
-			{
-				nullLessData[idx] = temp[idx];
-			}
-			return Encoding.UTF8.GetString(nullLessData);
+			return Encoding.UTF8.GetString(Encoding.Unicode.GetBytes(sb.ToString()).Where(currentByte => !_moreJunk.Contains(currentByte)).ToArray());
 		}
 	}
 }

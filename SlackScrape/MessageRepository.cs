@@ -17,7 +17,7 @@ namespace SlackScrape
 
 		internal SortedDictionary<string, List<Message>> TopLevelMessages { get; }
 
-		internal MessageRepository(string exportedSlackFolder, Channel channel)
+		internal MessageRepository(UserRepository userRepository, string exportedSlackFolder, Channel channel)
 		{
 			var skipSubtypes = new HashSet<string>
 			{
@@ -54,6 +54,7 @@ namespace SlackScrape
 						{
 							continue;
 						}
+						message.PrettifyText(userRepository);
 						Messages.Add(message.Ts, message);
 						if (string.IsNullOrWhiteSpace(message.Thread_Ts) || message.Ts == message.Thread_Ts)
 						{
