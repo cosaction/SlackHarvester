@@ -20,6 +20,11 @@ namespace SlackScrape
 			}
 			foreach (var dirName in Directory.GetDirectories(exportedSlackFolder, "*.*"))
 			{
+				if (dirName.Contains("cb-preview"))
+				{
+					// Remove after cb-preview data has been harvested.
+					continue;
+				}
 				var userRepository = new UserRepository(dirName);
 				var channelRepository = new ChannelRepository(dirName);
 				ProcessChannels(channelRepository.CurrentChannels.Values, dirName, userRepository, "Current");
@@ -46,26 +51,20 @@ namespace SlackScrape
 					channelElement.Add(messagesForDate);
 					foreach (var message in messages.Where(message => !string.IsNullOrWhiteSpace(message.User) && userRepository.HasUser(message.User)))
 					{
-						if (message.Replies == null)
+						if (string.IsNullOrWhiteSpace(message.Text))
 						{
-							var standAloneMessage = new XElement("message", new XAttribute("name", userRepository.Get(message.User).RealName))
-							{
-								Value = message.PrettifyText(userRepository)
-							};
-							messagesForDate.Add(standAloneMessage);
 							continue;
 						}
-						var threadedMessageElement = new XElement("threadedMessage");
+						if (message.Replies == null)
+						{
+							messagesForDate.Add(new XElement("message", new XAttribute("type", "solo"), new XAttribute("name", userRepository.Get(message.User).RealName), new XElement("text", message.PrettifyText(userRepository))));
+							continue;
+						}
+						var threadedMessageElement = new XElement("message", new XAttribute("type", "threaded"));
 						messagesForDate.Add(threadedMessageElement);
-						var mainMessageElement = new XElement("mainMessage", new XAttribute("name", userRepository.Get(message.User).RealName))
-						{
-							Value = message.PrettifyText(userRepository)
-						};
+						var mainMessageElement = new XElement("mainMessage", new XAttribute("name", userRepository.Get(message.User).RealName), new XElement("text", message.PrettifyText(userRepository)));
 						threadedMessageElement.Add(mainMessageElement);
-						foreach (var replyMessageElement in message.ThreadedMessages.Select(messageReply => new XElement("replyMessage", new XAttribute("name", userRepository.Get(messageReply.User).RealName))
-						{
-							Value = messageReply.PrettifyText(userRepository)
-						}))
+						foreach (var replyMessageElement in message.ThreadedMessages.Select(messageReply => new XElement("replyMessage", new XAttribute("name", userRepository.Get(messageReply.User).RealName), new XElement("text", messageReply.PrettifyText(userRepository)))))
 						{
 							mainMessageElement.Add(replyMessageElement);
 						}
