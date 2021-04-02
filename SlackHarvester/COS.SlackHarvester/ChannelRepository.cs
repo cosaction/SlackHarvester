@@ -1,4 +1,4 @@
-// Copyright (c) 2019 Randy Regnier
+// Copyright (c) 2019-2021 Convention of States Action
 // This software is licensed under the LGPL, version 2.1 or later
 // (http://www.gnu.org/licenses/lgpl-2.1.html)
 
@@ -9,7 +9,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace SlackScrape
+namespace SlackHarvester.COS.SlackHarvester
 {
 	internal sealed class ChannelRepository
 	{
@@ -43,9 +43,8 @@ namespace SlackScrape
 			using (var reader = File.OpenText(channelsPathname))
 			{
 				var token = JToken.ReadFrom(new JsonTextReader(reader));
-				foreach (var result in token.Children().ToList())
+				foreach (var channel in token.Children().ToList().Select(result => result.ToObject<Channel>()))
 				{
-					var channel = result.ToObject<Channel>();
 					if (channel.Is_Archived)
 					{
 						archivedChannels.Add(channel.Name, channel);
@@ -56,8 +55,8 @@ namespace SlackScrape
 					}
 				}
 			}
-			CurrentChannels = currentChannels;
 			ArchivedChannels = archivedChannels;
+			CurrentChannels = currentChannels;
 		}
 	}
 }

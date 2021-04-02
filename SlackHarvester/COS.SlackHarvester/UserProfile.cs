@@ -1,18 +1,15 @@
-// Copyright (c) 2019 Randy Regnier
+// Copyright (c) 2019-2021 Convention of States Action
 // This software is licensed under the LGPL, version 2.1 or later
 // (http://www.gnu.org/licenses/lgpl-2.1.html)
 
 using Newtonsoft.Json;
 
-namespace SlackScrape
+namespace SlackHarvester.COS.SlackHarvester
 {
 	[JsonObject(MemberSerialization.OptIn)]
-	internal sealed class Reply
+	internal sealed class UserProfile
 	{
 		[JsonProperty]
-		internal string User { get; set; }
-
-		[JsonProperty]
-		internal string Ts { get; set; }
+		internal string Real_Name { get; set; }
 	}
 }

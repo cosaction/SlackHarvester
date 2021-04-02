@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SlackScrape", "SlackScrape\SlackScrape.csproj", "{4F9ECA95-B47B-4821-BE3F-C741B46AE0E1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SlackHarvester", "SlackHarvester\SlackHarvester.csproj", "{4F9ECA95-B47B-4821-BE3F-C741B46AE0E1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

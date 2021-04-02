@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SlackHarvester": {
+      "commandName": "Project",
+      "commandLineArgs": "\"C:\\\\Dev\\SlackHarvester\\COS_Slack_Exports\""
+    }
+  }
+}

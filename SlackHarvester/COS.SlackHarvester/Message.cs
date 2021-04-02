@@ -1,4 +1,4 @@
-// Copyright (c) 2019 Randy Regnier
+// Copyright (c) 2019-2021 Convention of States Action
 // This software is licensed under the LGPL, version 2.1 or later
 // (http://www.gnu.org/licenses/lgpl-2.1.html)
 
@@ -8,12 +8,12 @@ using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
 
-namespace SlackScrape
+namespace SlackHarvester.COS.SlackHarvester
 {
 	[JsonObject(MemberSerialization.OptIn)]
 	internal sealed class Message
 	{
-		private static byte[] _moreJunk = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x18, 0x19, 0x1C, 0x1D};
+		private static byte[] _moreJunk = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x18, 0x19, 0x1C, 0x1D };
 
 		[JsonProperty]
 		internal string User { get; set; }
@@ -51,7 +51,7 @@ namespace SlackScrape
 			while (foundOpenBracketIdx > -1)
 			{
 				var endBracketIndex = prettifiedText.IndexOf(">", foundOpenBracketIdx, StringComparison.InvariantCulture);
-				var userId = prettifiedText.Substring(foundOpenBracketIdx + 2, endBracketIndex - foundOpenBracketIdx -2);
+				var userId = prettifiedText.Substring(foundOpenBracketIdx + 2, endBracketIndex - foundOpenBracketIdx - 2);
 				var user = userRepository.Get(userId);
 				idNameMap.Add(new Tuple<string, string>(userId, user.Name));
 				// NB: Don't do the swap here, since that will mess up "endBracketIndex".
