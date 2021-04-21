@@ -94,7 +94,7 @@ namespace SlackHarvester.COS.SlackHarvester.UI
 			// 
 			this._splitContainer.Panel2.Controls.Add(this._listView);
 			this._splitContainer.Size = new System.Drawing.Size(1133, 545);
-			this._splitContainer.SplitterDistance = 219;
+			this._splitContainer.SplitterDistance = 122;
 			this._splitContainer.TabIndex = 0;
 			// 
 			// _treeView
@@ -105,16 +105,17 @@ namespace SlackHarvester.COS.SlackHarvester.UI
 			this._treeView.HideSelection = false;
 			this._treeView.Location = new System.Drawing.Point(0, 0);
 			this._treeView.Name = "_treeView";
-			this._treeView.Size = new System.Drawing.Size(219, 545);
+			this._treeView.Size = new System.Drawing.Size(122, 545);
 			this._treeView.TabIndex = 0;
 			this._treeView.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.TreeView_AfterSelect);
+			this._treeView.KeyDown += new System.Windows.Forms.KeyEventHandler(this._treeView_KeyDown);
 			// 
 			// _contextMenuStripTreeView
 			// 
 			this._contextMenuStripTreeView.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.deleteToolStripMenuItem});
 			this._contextMenuStripTreeView.Name = "_contextMenuStripTreeView";
-			this._contextMenuStripTreeView.Size = new System.Drawing.Size(210, 48);
+			this._contextMenuStripTreeView.Size = new System.Drawing.Size(210, 26);
 			// 
 			// deleteToolStripMenuItem
 			// 
@@ -125,6 +126,7 @@ namespace SlackHarvester.COS.SlackHarvester.UI
 			// 
 			// _listView
 			// 
+			this._listView.Activation = System.Windows.Forms.ItemActivation.OneClick;
 			this._listView.CheckBoxes = true;
 			this._listView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this._checkBox,
@@ -138,7 +140,7 @@ namespace SlackHarvester.COS.SlackHarvester.UI
 			this._listView.HideSelection = false;
 			this._listView.Location = new System.Drawing.Point(0, 0);
 			this._listView.Name = "_listView";
-			this._listView.Size = new System.Drawing.Size(910, 545);
+			this._listView.Size = new System.Drawing.Size(1007, 545);
 			this._listView.TabIndex = 0;
 			this._listView.UseCompatibleStateImageBehavior = false;
 			this._listView.View = System.Windows.Forms.View.Details;

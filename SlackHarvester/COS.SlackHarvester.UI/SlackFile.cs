@@ -57,7 +57,6 @@ namespace SlackHarvester.COS.SlackHarvester.UI
 			}
 			File.Delete(Pathname);
 			SlackFileWasDeleted?.Invoke(this, null);
-
 		}
 
 		internal SlackFile(string pathname)

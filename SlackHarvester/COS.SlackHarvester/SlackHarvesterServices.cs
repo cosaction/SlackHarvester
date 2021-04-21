@@ -83,7 +83,7 @@ namespace SlackHarvester.COS.SlackHarvester
 			{
 				ProcessChannels(channelRepository.CurrentChannels.Values, Current);
 				ProcessChannels(channelRepository.ArchivedChannels.Values, Archived);
-				
+
 				void ProcessChannels(IEnumerable<Channel> channels, string channelType)
 				{
 					var essentiallyEmptyTextContent = new HashSet<string>
