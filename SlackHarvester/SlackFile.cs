@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace SlackHarvester.COS.SlackHarvester.UI
+namespace SlackHarvester
 {
 	internal sealed class SlackFile
 	{
@@ -60,15 +60,20 @@ namespace SlackHarvester.COS.SlackHarvester.UI
 		}
 
 		internal SlackFile(string pathname)
+			: this(pathname, XDocument.Load(pathname))
+		{
+		}
+
+		internal SlackFile(string pathname, XDocument slackFileDocument, bool saveSlackFile = false)
 		{
 			Pathname = pathname ?? throw new ArgumentNullException(nameof(pathname));
-			Document = XDocument.Load(pathname);
+			Document = slackFileDocument;
 			RootData = Document.Root;
-			if (RemoveEmptyMajorElements())
+			if (RemoveEmptyMajorElements() || saveSlackFile)
 			{
 				Document.Save(Pathname);
 			}
-			UiName = Path.GetFileNameWithoutExtension(pathname).Replace("-Messages", string.Empty);
+			UiName = Path.GetFileNameWithoutExtension(pathname);
 			OnRaiseSlackFileDeletedIfNeeded();
 		}
 

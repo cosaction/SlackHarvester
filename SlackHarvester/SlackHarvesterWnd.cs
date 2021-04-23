@@ -4,12 +4,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using System.Xml.Linq;
 
-namespace SlackHarvester.COS.SlackHarvester.UI
+namespace SlackHarvester
 {
 	/// <summary>
 	/// The idea of this window is to take the output of the basic harvester and then remove all material that is not suited for being a HD KB FAQ.
@@ -24,22 +23,21 @@ namespace SlackHarvester.COS.SlackHarvester.UI
 		public SlackHarvesterWnd()
 		{
 			InitializeComponent();
+		}
+
+		internal SlackHarvesterWnd(List<SlackFile> slackFilesToManuallyProcess)
+			: this()
+		{
 			// Populate the toolStripComboBoxSlackFiles combo box.
-			_slackFiles = new List<SlackFile>();
-			foreach (var xmlPathname in Directory.GetFiles(SlackHarvesterServices.ManualProcessingFolder, "*.xml", SearchOption.TopDirectoryOnly))
+			_slackFiles = slackFilesToManuallyProcess;
+			foreach (var slackFile in _slackFiles)
 			{
-				if (xmlPathname.Contains("Z_FAQ_Candidate_Material"))
-				{
-					continue;
-				}
-				var slackFile = new SlackFile(xmlPathname);
 				if (!slackFile.RootData.HasElements)
 				{
 					// It was empty, so was deleted in the constructor, so skip adding it.
 					continue;
 				}
 				slackFile.SlackFileWasDeleted += SlackFileWasDeletedHandler;
-				_slackFiles.Add(slackFile);
 				_toolStripComboBoxSlackFiles.Items.Add(slackFile);
 			}
 		}
@@ -81,7 +79,7 @@ namespace SlackHarvester.COS.SlackHarvester.UI
 					elementsWithNoChildElements.Add(channelElement);
 					continue;
 				}
-				var channelNode = new TreeNode(channelElement.Attribute("name").Value)
+				var channelNode = new TreeNode(channelElement.Attribute("uiName").Value)
 				{
 					Tag = channelElement
 				};

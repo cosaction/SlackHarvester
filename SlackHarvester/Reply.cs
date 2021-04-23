@@ -4,12 +4,15 @@
 
 using Newtonsoft.Json;
 
-namespace SlackHarvester.COS.SlackHarvester
+namespace SlackHarvester
 {
 	[JsonObject(MemberSerialization.OptIn)]
-	internal sealed class UserProfile
+	internal sealed class Reply
 	{
 		[JsonProperty]
-		internal string Real_Name { get; set; }
+		internal string User { get; set; }
+
+		[JsonProperty]
+		internal string Ts { get; set; }
 	}
 }

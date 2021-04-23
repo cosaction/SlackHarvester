@@ -4,7 +4,7 @@
 
 using Newtonsoft.Json;
 
-namespace SlackHarvester.COS.SlackHarvester
+namespace SlackHarvester
 {
 	[JsonObject(MemberSerialization.OptIn)]
 	internal sealed class User
@@ -19,10 +19,10 @@ namespace SlackHarvester.COS.SlackHarvester
 		internal string Real_Name { get; set; }
 
 		[JsonProperty]
-		internal UserProfile Profile { get; set; }
+		internal bool Deleted { get; set; }
 
 		[JsonProperty]
-		internal bool Deleted { get; set; }
+		private UserProfile Profile { get; set; }
 
 		internal string RealName => Deleted ? Profile.Real_Name : Real_Name;
 	}

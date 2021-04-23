@@ -3,9 +3,8 @@
 // (http://www.gnu.org/licenses/lgpl-2.1.html)
 
 using System;
+using System.Linq;
 using System.Windows.Forms;
-using SlackHarvester.COS.SlackHarvester;
-using SlackHarvester.COS.SlackHarvester.UI;
 
 namespace SlackHarvester
 {
@@ -17,15 +16,14 @@ namespace SlackHarvester
 			Application.SetCompatibleTextRenderingDefault(false);
 			// Glean data from source files.
 			// "C:\\Dev\SlackHarvester\COS_Slack_Exports"
-			SlackHarvesterServices.ExportedSlackBaseFolder = args[0];
-			if (SlackHarvesterServices.CanHarvestSource)
+			var slackFilesToManuallyProcess = SlackHarvesterServices.HarvestSlackData(args[0]);
+			if (slackFilesToManuallyProcess.Any())
 			{
-				SlackHarvesterServices.HarvestFromSources();
-				SlackHarvesterServices.RemoveSourceFolders();
+				Application.Run(new SlackHarvesterWnd(slackFilesToManuallyProcess));
 			}
-			if (SlackHarvesterServices.CanDoManualCleanup)
+			else
 			{
-				Application.Run(new SlackHarvesterWnd());
+				MessageBox.Show("Nothing to do!", "Manual Processing", MessageBoxButtons.OK);
 			}
 		}
 	}
